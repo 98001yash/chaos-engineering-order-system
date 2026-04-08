@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+
+  order-service:
+    image: yash/order-service:v1
+    container_name: order-service
+    ports:
+      - "9010:9010"
+    networks:
+      - order-network
+    depends_on:
+      - payment-service
+    restart: always
+
+  payment-service:
+    image: yash/payment-service:v1
+    container_name: payment-service
+    ports:
+      - "9020:9020"
+    networks:
+      - order-network
+    restart: always
+
+networks:
+  order-network:
+    driver: bridge
