@@ -2,6 +2,7 @@ package com.yash.order_service.controller;
 
 
 import com.yash.order_service.clients.PaymentClient;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ public class OrderController {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000)
     )
+    @CircuitBreaker(name = "paymentService", fallbackMethod = "fallbackMethod")
     public String createOrder() {
         try {
             System.out.println("Calling payment service...");
@@ -32,5 +34,9 @@ public class OrderController {
             System.out.println("Payment failed, retrying...");
             throw e; // IMPORTANT
         }
+    }
+
+    public String fallbackMethod(Exception e) {
+        return "Payment service is down. Order placed in pending state.";
     }
 }
