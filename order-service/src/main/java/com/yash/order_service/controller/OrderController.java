@@ -18,25 +18,23 @@ public class OrderController {
     }
 
     @GetMapping("/order")
+    public String createOrder() {
+        System.out.println("Calling payment service...");
+        String paymentResponse = callPaymentService();
+        return "Order Success | " + paymentResponse;
+    }
+
     @Retryable(
             value = Exception.class,
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000)
     )
     @CircuitBreaker(name = "paymentService", fallbackMethod = "fallbackMethod")
-    public String createOrder() {
-        try {
-            System.out.println("Calling payment service...");
-            String paymentResponse = paymentClient.processPayment();
-            return "Order Success  | " + paymentResponse;
-
-        } catch (Exception e) {
-            System.out.println("Payment failed, retrying...");
-            throw e; // IMPORTANT
-        }
+    public String callPaymentService() {
+        return paymentClient.processPayment();
     }
 
-    public String fallbackMethod(Exception e) {
+    public String fallbackMethod(Throwable t) {
         return "Payment service is down. Order placed in pending state.";
     }
 }
