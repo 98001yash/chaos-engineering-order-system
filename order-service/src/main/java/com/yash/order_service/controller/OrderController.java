@@ -2,6 +2,7 @@ package com.yash.order_service.controller;
 
 
 import com.yash.order_service.clients.PaymentClient;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -30,6 +31,7 @@ public class OrderController {
             backoff = @Backoff(delay = 1000)
     )
     @CircuitBreaker(name = "paymentService", fallbackMethod = "fallbackMethod")
+    @Bulkhead(name = "paymentService", type = Bulkhead.Type.THREADPOOL)
     public String callPaymentService() {
         return paymentClient.processPayment();
     }
